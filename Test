@@ -1,5 +1,2 @@
-Map<String, String> envVariables = System.getenv();
-
-        for (Map.Entry<String, String> entry : envVariables.entrySet()) {
-            System.out.println(entry.getKey() + " = " + entry.getValue());
-        }
+This is my number : 9110436708
+Keep confidentials.
