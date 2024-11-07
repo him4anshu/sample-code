@@ -1,0 +1,41 @@
+import javax.validation.Constraint;
+import javax.validation.Payload;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Constraint(validatedBy = SanitizedStringValidator.class)
+@Target({ ElementType.METHOD, ElementType.FIELD, ElementType.ANNOTATION_TYPE })
+@Retention(RetentionPolicy.RUNTIME)
+public @interface SanitizedString {
+    String message() default "Invalid input: contains unsafe characters";
+    Class<?>[] groups() default {};
+    Class<? extends Payload>[] payload() default {};
+}
+
+import org.owasp.encoder.Encode;
+
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
+
+public class SanitizedStringValidator implements ConstraintValidator<SanitizedString, String> {
+
+    @Override
+    public void initialize(SanitizedString constraintAnnotation) {
+        // Initialization if needed
+    }
+
+    @Override
+    public boolean isValid(String value, ConstraintValidatorContext context) {
+        if (value == null || value.isEmpty()) {
+            return true; // Consider empty or null as valid; handle with @NotNull or @NotBlank
+        }
+        
+        // Sanitize the input
+        String sanitizedValue = Encode.forHtml(value);
+        
+        // Check if the sanitized value is different from the original
+        return sanitizedValue.equals(value);
+    }
+}
