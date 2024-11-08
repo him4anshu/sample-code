@@ -39,3 +39,50 @@ public class SanitizedStringValidator implements ConstraintValidator<SanitizedSt
         return sanitizedValue.equals(value);
     }
 }
+
+===========================================
+import org.junit.jupiter.api.Test;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+public class SanitizedStringValidatorTest {
+
+    private final Validator validator;
+
+    public SanitizedStringValidatorTest() {
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        this.validator = factory.getValidator();
+    }
+
+    @Test
+    public void testValidInput() {
+        String validInput = "Hello World";
+        assertTrue(validator.validate(new TestEntity(validInput)).isEmpty());
+    }
+
+    @Test
+    public void testInvalidInputWithHtml() {
+        String invalidInput = "<script>alert('xss')</script>";
+        assertFalse(validator.validate(new TestEntity(invalidInput)).isEmpty());
+    }
+
+    @Test
+    public void testNullInput() {
+        assertTrue(validator.validate(new TestEntity(null)).isEmpty());
+    }
+
+    private static class TestEntity {
+        @NoHtml
+        private String input;
+
+        public TestEntity(String input) {
+            this.input = input;
+        }
+        
+        // Getter and Setter (if needed)
+    }
+}
