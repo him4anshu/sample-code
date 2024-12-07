@@ -1,0 +1,128 @@
+Here’s an example configuration:
+
+Using application.yml:
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    # Default producer properties
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    # Default consumer properties
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      group-id: default-group
+
+custom-kafka:
+  producers:
+    producer1:
+      bootstrap-servers: localhost:9093
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    producer2:
+      bootstrap-servers: localhost:9094
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+  consumers:
+    consumer1:
+      bootstrap-servers: localhost:9093
+      group-id: group1
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    consumer2:
+      bootstrap-servers: localhost:9094
+      group-id: group2
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+Custom Configuration Classes:
+Producer Configuration:
+
+@Configuration
+public class ProducerConfig {
+
+    @Bean(name = "producerFactory1")
+    public ProducerFactory<String, String> producerFactory1() {
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9093");
+        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        return new DefaultKafkaProducerFactory<>(configProps);
+    }
+
+    @Bean(name = "kafkaTemplate1")
+    public KafkaTemplate<String, String> kafkaTemplate1(@Qualifier("producerFactory1") ProducerFactory<String, String> producerFactory1) {
+        return new KafkaTemplate<>(producerFactory1);
+    }
+
+    @Bean(name = "producerFactory2")
+    public ProducerFactory<String, String> producerFactory2() {
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9094");
+        configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        return new DefaultKafkaProducerFactory<>(configProps);
+    }
+
+    @Bean(name = "kafkaTemplate2")
+    public KafkaTemplate<String, String> kafkaTemplate2(@Qualifier("producerFactory2") ProducerFactory<String, String> producerFactory2) {
+        return new KafkaTemplate<>(producerFactory2);
+    }
+}
+Consumer Configuration:
+
+@Configuration
+public class ConsumerConfig {
+
+    @Bean(name = "consumerFactory1")
+    public ConsumerFactory<String, String> consumerFactory1() {
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9093");
+        configProps.put(ConsumerConfig.GROUP_ID_CONFIG, "group1");
+        configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        return new DefaultKafkaConsumerFactory<>(configProps);
+    }
+
+    @Bean(name = "kafkaListenerContainerFactory1")
+    public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory1(
+            @Qualifier("consumerFactory1") ConsumerFactory<String, String> consumerFactory1) {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory1);
+        return factory;
+    }
+
+    @Bean(name = "consumerFactory2")
+    public ConsumerFactory<String, String> consumerFactory2() {
+        Map<String, Object> configProps = new HashMap<>();
+        configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9094");
+        configProps.put(ConsumerConfig.GROUP_ID_CONFIG, "group2");
+        configProps.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        configProps.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        return new DefaultKafkaConsumerFactory<>(configProps);
+    }
+
+    @Bean(name = "kafkaListenerContainerFactory2")
+    public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory2(
+            @Qualifier("consumerFactory2") ConsumerFactory<String, String> consumerFactory2) {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory2);
+        return factory;
+    }
+}
+Usage:
+You can inject specific producers and consumers where needed:
+
+@Autowired
+@Qualifier("kafkaTemplate1")
+private KafkaTemplate<String, String> kafkaTemplate1;
+
+@Autowired
+@Qualifier("kafkaListenerContainerFactory1")
+private ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory1;
+This approach gives you flexibility to manage multiple Kafka producers and consumers with different configurations in your Spring Boot application.
+
+
+
+
+
