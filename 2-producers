@@ -94,3 +94,6 @@ public class ProducerService2 {
 }
 
 --------------------------------------------------------------------------------------------------
+
+implementation 'org.apache.avro:avro:1.11.3'
+implementation 'io.confluent:kafka-avro-serializer:7.6.0'
