@@ -1,0 +1,96 @@
+spring:
+  kafka:
+    producer:
+      producer1:
+        bootstrap-servers: localhost:9092
+        key-serializer: org.apache.kafka.common.serialization.StringSerializer
+        value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      producer2:
+        bootstrap-servers: localhost:9093
+        key-serializer: org.apache.kafka.common.serialization.StringSerializer
+        value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+
+------------------------------------------------------------------------------------------------------------------------------------
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.core.DefaultKafkaProducerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+
+import java.util.HashMap;
+import java.util.Map;
+
+@Configuration
+public class KafkaConfig {
+
+    @Bean(name = "producer1")
+    public KafkaTemplate<String, String> kafkaTemplate1(KafkaProperties kafkaProperties) {
+        Map<String, Object> config = new HashMap<>(kafkaProperties.buildProducerProperties());
+        return new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(config));
+    }
+
+    @Bean(name = "producer2")
+    public KafkaTemplate<String, Object> kafkaTemplate2(KafkaProperties kafkaProperties) {
+        Map<String, Object> config = new HashMap<>(kafkaProperties.buildProducerProperties());
+        // Customize for Avro or other serialization if needed
+        config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, io.confluent.kafka.serializers.KafkaAvroSerializer.class);
+        return new KafkaTemplate<>(new DefaultKafkaProducerFactory<>(config));
+    }
+}
+
+--------------------------------------------------------------------------------------------
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
+
+@Service
+public class ProducerService1 {
+
+    private final KafkaTemplate<String, String> kafkaTemplate;
+
+    @Autowired
+    public ProducerService1(@Qualifier("producer1") KafkaTemplate<String, String> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
+    }
+
+    public void sendMessage(String topic, String message) {
+        kafkaTemplate.send(topic, message);
+    }
+}
+
+@Service
+public class ProducerService2 {
+
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    @Autowired
+    public ProducerService2(@Qualifier("producer2") KafkaTemplate<String, Object> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
+    }
+
+    public void sendMessage(String topic, Object message) {
+        kafkaTemplate.send(topic, message);
+    }
+}
+
+------------------------------------------------------------------------------------------------
+@Service
+public class ProducerService2 {
+
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    @Autowired
+    public ProducerService2(@Qualifier("producer2") KafkaTemplate<String, Object> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
+    }
+
+    public void sendMessage(String topic, Object message) {
+        kafkaTemplate.send(topic, message);
+    }
+}
+
+--------------------------------------------------------------------------------------------------
