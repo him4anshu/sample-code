@@ -1,0 +1,37 @@
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.core.ConsumerFactory;
+
+@Configuration
+public class KafkaConsumerConfig {
+
+    private final KafkaProperties kafkaProperties;
+
+    public KafkaConsumerConfig(KafkaProperties kafkaProperties) {
+        this.kafkaProperties = kafkaProperties;
+    }
+
+    @Bean(name = "consumer1")
+    public ConcurrentKafkaListenerContainerFactory<String, String> consumer1ContainerFactory() {
+        return createContainerFactory("consumer1");
+    }
+
+    @Bean(name = "consumer2")
+    public ConcurrentKafkaListenerContainerFactory<String, String> consumer2ContainerFactory() {
+        return createContainerFactory("consumer2");
+    }
+
+    private ConcurrentKafkaListenerContainerFactory<String, String> createContainerFactory(String consumerName) {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory(consumerName));
+        return factory;
+    }
+
+    private ConsumerFactory<String, String> consumerFactory(String consumerName) {
+        // Customize the consumer factory if needed based on the consumer name.
+        return new DefaultKafkaConsumerFactory<>(kafkaProperties.buildConsumerProperties());
+    }
+}
