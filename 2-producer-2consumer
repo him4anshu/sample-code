@@ -1,0 +1,35 @@
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: myGroup
+      auto-offset-reset: earliest
+      properties:
+        fetch.min.bytes: 50000
+    producer:
+      retries: 3
+      acks: all
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+# Producer 1 Configuration
+kafka:
+  producer1:
+    topic: topic1
+    bootstrap-servers: localhost:9092
+
+# Producer 2 Configuration
+kafka:
+  producer2:
+    topic: topic2
+    bootstrap-servers: localhost:9093
+
+# Consumer 1 Configuration
+kafka:
+  consumer1:
+    topic: topic1
+
+# Consumer 2 Configuration
+kafka:
+  consumer2:
+    topic: topic2
