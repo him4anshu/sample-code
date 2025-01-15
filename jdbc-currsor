@@ -1,35 +1,34 @@
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.CallableStatement;
 import java.sql.ResultSet;
-import oracle.jdbc.OracleTypes;
+import java.sql.ResultSetMetaData;
+import java.sql.Statement;
 
-public class CursorExample {
+public class DynamicColumnRetrieval {
     public static void main(String[] args) {
-        String url = "jdbc:oracle:thin:@//your_host:your_port/your_service";
+        String url = "jdbc:mysql://localhost:3306/your_database"; // Update with your DB details
         String user = "your_username";
         String password = "your_password";
 
-        try (Connection conn = DriverManager.getConnection(url, user, password)) {
-            // Prepare the callable statement
-            CallableStatement stmt = conn.prepareCall("{ ? = call get_employees_by_department(?) }");
+        try (Connection conn = DriverManager.getConnection(url, user, password);
+             Statement stmt = conn.createStatement()) {
 
-            // Register the OUT parameter for the cursor
-            stmt.registerOutParameter(1, OracleTypes.CURSOR);
-            stmt.setInt(2, 10); // Example department ID
+            // Execute a query
+            ResultSet rs = stmt.executeQuery("SELECT * FROM your_table"); // Replace with your table name
 
-            // Execute the statement
-            stmt.execute();
+            // Get ResultSetMetaData
+            ResultSetMetaData metaData = rs.getMetaData();
+            int columnCount = metaData.getColumnCount(); // Get the number of columns
 
-            // Get the cursor and process it
-            ResultSet rs = (ResultSet) stmt.getObject(1);
+            // Iterate through the ResultSet
             while (rs.next()) {
-                System.out.println("Employee ID: " + rs.getInt("employee_id") + ", Name: " + rs.getString("first_name"));
+                for (int i = 1; i <= columnCount; i++) { // Column indices start from 1
+                    String columnName = metaData.getColumnName(i); // Get column name by index
+                    Object value = rs.getObject(i); // Get value by index
+                    System.out.println(columnName + ": " + value); // Print column name and value
+                }
+                System.out.println("----------"); // Separator for rows
             }
-
-            // Clean up
-            rs.close();
-            stmt.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
