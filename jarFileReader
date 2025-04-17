@@ -1,0 +1,57 @@
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
+import java.util.Enumeration;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+
+public class JarSearcher {
+
+    public static void main(String[] args) throws IOException {
+        if (args.length < 2) {
+            System.out.println("Usage: java JarSearcher <rootDir> <searchTerm> [--content]");
+            return;
+        }
+
+        Path rootDir = Paths.get(args[0]);
+        String searchTerm = args[1];
+        boolean searchContent = args.length > 2 && args[2].equals("--content");
+
+        Files.walk(rootDir)
+            .filter(p -> p.toString().endsWith(".jar"))
+            .forEach(jarPath -> processJar(jarPath, searchTerm, searchContent));
+    }
+
+    private static void processJar(Path jarPath, String searchTerm, boolean searchContent) {
+        try (JarFile jar = new JarFile(jarPath.toFile())) {
+            Enumeration<JarEntry> entries = jar.entries();
+            
+            while (entries.hasMoreElements()) {
+                JarEntry entry = entries.nextElement();
+                if (entry.isDirectory()) continue;
+
+                // Search for class names in entry path
+                if (entry.getName().contains(searchTerm.replace(".", "/"))) {
+                    System.out.printf("Found in: %s%n  Entry: %s%n", jarPath, entry.getName());
+                }
+
+                // Optional: Search file content
+                if (searchContent) {
+                    try (BufferedReader reader = new BufferedReader(
+                            new InputStreamReader(jar.getInputStream(entry), StandardCharsets.UTF_8))) {
+                        
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            if (line.contains(searchTerm)) {
+                                System.out.printf("Content match in: %s%n  Entry: %s%n", jarPath, entry.getName());
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error processing JAR: " + jarPath);
+        }
+    }
+}
