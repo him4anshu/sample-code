@@ -1,0 +1,59 @@
+JSON Request Example
+json
+{
+  "schemaName": "My New Schema",
+  "rules": [
+    {
+      "ruleName": "Rule 1",
+      "change": {
+        "from": {
+          "field": "Asset Sub Category",
+          "value": "Default NT-Value"
+        },
+        "to": {
+          "field": "Asset Sub Category",
+          "value": "Common Stock"
+        }
+      },
+      "assetsAffected": 2
+    }
+  ]
+}
+Documentation
+Endpoint:
+POST /api/schemas
+(Replace with your actual endpoint)
+
+Request Body Fields:
+
+Field	Type	Description
+schemaName	string	Name of the schema being created or edited.
+rules	array	List of rule objects to apply within the schema.
+ruleName	string	Name or label for the rule (e.g., "Rule 1").
+change	object	Object describing what is changing in the asset.
+from	object	The original field and value before the change.
+to	object	The new field and value after the change.
+assetsAffected	integer	Number of assets that will be affected by this rule (for informational use).
+Example Explained:
+
+schemaName: Sets the schema's name as entered in the UI ("My New Schema").
+
+rules: Contains an array of rules. In this example, there is one rule.
+
+ruleName: "Rule 1" as shown in the UI.
+
+change: Specifies what is being changed.
+
+from: The original asset subcategory is "Default NT-Value".
+
+to: The new asset subcategory is "Common Stock".
+
+assetsAffected: Indicates that 2 assets are affected by this rule (as shown by the eye icon and number in the UI).
+
+Notes:
+
+The assetsAffected field is typically informational and may be omitted from the request if your backend calculates it automatically.
+
+The structure can be extended to support multiple rules by adding more objects to the rules array.
+
+The field names (Asset Sub Category, etc.) should match your system's expected values.
