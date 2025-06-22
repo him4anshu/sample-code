@@ -1,0 +1,53 @@
+JSON Request Example for "Create Schema" Functionality
+Below is a sample JSON request body that represents the functionality shown in the image. This JSON captures the schema name, rules (with IF and THEN ASSIGN logic), and the application scope for the rule.
+
+json
+{
+  "schemaName": "My new Schema",
+  "rules": [
+    {
+      "ruleName": "Example Rule",
+      "if": [
+        {
+          "field": "FieldName1",
+          "operator": "Equal",
+          "value": "SomeValue"
+        }
+      ],
+      "thenAssign": [
+        {
+          "field": "FieldName2",
+          "operator": "Equal",
+          "value": "AssignedValue"
+        }
+      ]
+    }
+  ],
+  "applyTo": "all" // Use "all" for all existing and future assets, "future" for future assets only
+}
+Field Descriptions
+schemaName: The name of the schema being created (string).
+
+rules: An array of rule objects.
+
+ruleName: Name for the rule (string).
+
+if: Array of conditions to match (each with a field, operator, and value).
+
+thenAssign: Array of assignments to perform if the condition is met (each with a field, operator, and value).
+
+applyTo: Specifies rule application scope. Use "all" for all existing and future assets, or "future" for future assets only.
+
+Example Explained
+The request creates a schema named "My new Schema".
+
+It adds one rule called "Example Rule".
+
+The rule checks if "FieldName1" equals "SomeValue".
+
+If true, it assigns "AssignedValue" to "FieldName2".
+
+The rule will apply to all existing and future assets.
+
+You can extend the rules array to include multiple rules, and each rule can have multiple conditions or assignments as needed.
+
