@@ -1,0 +1,33 @@
+My version
+==========
+SPring boot 6.x - Had RestCLient with reacotor httprequestFactory from ELI logging which has default accept-encoding as gzip,deflate and others
+Spring boot 7.x - 1.As we removed ELI looging so RestCLient httprequestfactory got from JDK i.e JDKCLientHttpRequestFactory which has by deaflut only accept-encoding as deflate.
+                  2.To make it work we ovverdide value of decompress as false which internally take care of accept encoding to all possible combination
+				  3.Since this JDKCLientHttpRequestFactory does not have TLS negaotaion so in case if its not able to connect with healthy node from elb its giving gateway timeout
+				  
+				  Now we chnaged to Webclient which is using ReactorHttpRequestFactory has TLS negoation , so in case if ELB is not able to connect then its uses eixsting session.
+
+Note : As in UAT its consistemt so most proable the issue is from ELB when it connects with decion service. Decision service seems not stable in lower enoviroment
+
+
+
+AI Version
+=======
+During the migration from Spring Boot 6.x to 7.x, we identified a performance degradation in outgoing HTTP traffic caused by a change in the default underlying client implementation. Below is a technical summary of the findings and the resulting resolution:
+
+Technical Analysis of Migration Discrepancies
+Change in ClientHttpRequestFactory Implementation:
+In Spring Boot 6.x, the RestClient utilized ReactorNettyClientRequestFactory (facilitated by the ELI logging dependency), which provided comprehensive Accept-Encoding support (e.g., gzip, deflate). Following the removal of ELI logging in 7.x, the RestClient defaulted to JdkClientHttpRequestFactory.
+
+Accept-Encoding Header Behavior:
+JdkClientHttpRequestFactory restricts the Accept-Encoding header to deflate by default. We addressed this compression mismatch by setting decompress to false in the factory configuration, which effectively restored the expected Accept-Encoding header combinations.
+
+TLS Negotiation and Connection Pooling Issues:
+Despite addressing the encoding issue, we observed intermittent 504 Gateway Timeout errors. Our investigation revealed that JdkClientHttpRequestFactory lacks the robust TLS negotiation and connection pooling capabilities required for our infrastructure. In scenarios where the Elastic Load Balancer (ELB) failed to route traffic to a healthy downstream node of the Decision Service, the JDK-based client failed to gracefully handle connection reuse or renegotiation, leading to timeouts.
+
+Resolution
+To resolve these connectivity issues, we migrated the implementation to WebClient using ReactorNettyClientRequestFactory. This approach restored support for efficient TLS negotiation and advanced connection pooling. This allows the client to gracefully handle transient connectivity issues at the ELB layer by reusing existing sessions or properly negotiating new connections when routing to the Decision Service, which has shown instability in lower environments.
+
+This migration strategy has resulted in consistent behavior during UAT, validating that the instability was rooted in the connection-handling differences between the JDK and Reactor Netty factories.
+
+
